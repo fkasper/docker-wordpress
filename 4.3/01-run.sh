@@ -9,9 +9,9 @@ if [ ! -n "$ETCD_DOMAIN" ]; then
 		exit 1
 	fi
 	theIPaddress=$(ip addr show eth0 | grep "inet\b" | awk '{print $2}' | cut -d/ -f1)
-	/etcd/etcdctl -C http://$ETCD_PORT_2379_TCP_ADDR:$ETCD_PORT_2379_TCP_PORT set /vulcand/backends/$ETCD_DOMAIN/backend '{"Type": "http"}'
-	/etcd/etcdctl -C http://$ETCD_PORT_2379_TCP_ADDR:$ETCD_PORT_2379_TCP_PORT set /vulcand/backends/$ETCD_DOMAIN/servers/server1 "{\"URL\": \"http://$theIPaddress\"}"
-	/etcd/etcdctl -C http://$ETCD_PORT_2379_TCP_ADDR:$ETCD_PORT_2379_TCP_PORT set /vulcand/frontends/$ETCD_DOMAIN/frontend "{\"Type\": \"http\", \"BackendId\": \"$ETCD_DOMAIN\", \"Route\": \"Host(`$ETCD_DOMAIN`)\"}"
+	/etcd/etcd-v2.2.0-rc.0-linux-amd64/etcdctl -C http://$ETCD_PORT_2379_TCP_ADDR:$ETCD_PORT_2379_TCP_PORT set /vulcand/backends/$ETCD_DOMAIN/backend '{"Type": "http"}'
+	/etcd/etcd-v2.2.0-rc.0-linux-amd64/etcdctl -C http://$ETCD_PORT_2379_TCP_ADDR:$ETCD_PORT_2379_TCP_PORT set /vulcand/backends/$ETCD_DOMAIN/servers/server1 "{\"URL\": \"http://$theIPaddress\"}"
+	/etcd/etcd-v2.2.0-rc.0-linux-amd64/etcdctl -C http://$ETCD_PORT_2379_TCP_ADDR:$ETCD_PORT_2379_TCP_PORT set /vulcand/frontends/$ETCD_DOMAIN/frontend "{\"Type\": \"http\", \"BackendId\": \"$ETCD_DOMAIN\", \"Route\": \"Host(`$ETCD_DOMAIN`)\"}"
 fi
 if [ -n "$MYSQL_PORT_3306_TCP" ]; then
 	if [ -z "$WORDPRESS_DB_HOST" ]; then
