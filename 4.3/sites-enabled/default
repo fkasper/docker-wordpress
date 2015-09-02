@@ -1,0 +1,70 @@
+server {
+  listen        80 default_server;
+  index         index.php;
+  root          /system/wordpress;
+
+  set           $cache_uri $request_uri;
+  
+  include "includes/03_php.conf";
+
+  if ($request_method = POST) {
+    set $cache_uri 'null cache';
+  }
+
+  if ($query_string != "") {
+    set $cache_uri 'null cache';
+  }
+
+  if ($request_uri ~* "(/wp-admin/|/xmlrpc.php|/wp-(app|cron|login|register|mail).php|wp-.*.php|/feed/|index.php|wp-comments-popup.php|wp-links-opml.php|wp-locations.php|sitemap(_index)?.xml|[a-z0-9_-]+-sitemap([0-9]+)?.xml)") {
+    set $cache_uri 'null cache';
+  }
+
+  if ($http_cookie ~* "comment_author|wordpress_[a-f0-9]+|wp-postpass|wordpress_logged_in") {
+    set $cache_uri 'null cache';
+  }
+
+
+  location ~ ^/wp-content/cache/minify/[^/]+/(.*)$ {
+    try_files $uri /wp-content/plugins/w3-total-cache/pub/minify.php?file=$1;
+    add_header 'Access-Control-Allow-Origin' '*';
+    add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+    add_header 'Access-Control-Allow-Headers' 'DNT,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type';
+    access_log off;
+    expires max;
+    log_not_found off;
+    gzip on;
+    gzip_static off;
+    open_file_cache max=2000 inactive=20s;
+    open_file_cache_errors off;
+    open_file_cache_min_uses 5;
+    open_file_cache_valid 60s;
+    tcp_nodelay off;
+
+  }
+
+  location = /favicon.ico { log_not_found off; access_log off; }
+  location = /robots.txt  { log_not_found off; access_log off; }
+
+  location ~* .(ogg|ogv|svg|svgz|eot|otf|woff|mp4|ttf|css|rss|atom|js|jpg|jpeg|gif|png|ico|zip|tgz|gz|rar|bz2|doc|xls|exe|ppt|tar|mid|midi|wav|bmp|rtf|otf|ttf|woff|svg|eot|font.css|ttc|otf)$ {
+    add_header 'Access-Control-Allow-Origin' '*';
+    add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+    add_header 'Access-Control-Allow-Headers' 'DNT,X-Mx-ReqToken,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type';
+
+    access_log off;
+    expires max;
+    log_not_found off;
+    gzip on;
+    gzip_static off;
+    open_file_cache max=2000 inactive=20s;
+    open_file_cache_errors off;
+    open_file_cache_min_uses 5;
+    open_file_cache_valid 60s;
+    tcp_nodelay off;
+  }
+
+  location / {
+    root      /system/wordpress;
+    try_files /wp-content/cache/page_enhanced/${host}${cache_uri}_index.html $uri $uri/ /index.php?$args ;
+  }
+
+}
