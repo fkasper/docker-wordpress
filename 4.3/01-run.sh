@@ -1,11 +1,18 @@
 #!/bin/bash
 set -e
 
-if [ -d /app ]; then
-  rm -rf /system/wordpress/wp-content
-  ln -sfn /app /system/wordpress/wp-content
-fi
+ln -sfn /app /system/wordpress/wp-content
 
+if [ ! -n "$ETCD_DOMAIN" ]; then
+	if [ -n "$ETCD_PORT_2379_TCP_ADDR" ]; then
+		echo >&2 "error: No etcd host could be found, but ETCD_DOMAIN was specified"
+		exit 1
+	fi
+	theIPaddress=$(ip addr show eth0 | grep "inet\b" | awk '{print $2}' | cut -d/ -f1)
+	/etcd/etcdctl -C http://$ETCD_PORT_2379_TCP_ADDR:$ETCD_PORT_2379_TCP_PORT set /vulcand/backends/$ETCD_DOMAIN/backend '{"Type": "http"}'
+	/etcd/etcdctl -C http://$ETCD_PORT_2379_TCP_ADDR:$ETCD_PORT_2379_TCP_PORT set /vulcand/backends/$ETCD_DOMAIN/servers/server1 "{\"URL\": \"http://$theIPaddress\"}"
+	/etcd/etcdctl -C http://$ETCD_PORT_2379_TCP_ADDR:$ETCD_PORT_2379_TCP_PORT set /vulcand/frontends/$ETCD_DOMAIN/frontend "{\"Type\": \"http\", \"BackendId\": \"$ETCD_DOMAIN\", \"Route\": \"Host(`$ETCD_DOMAIN`)\"}"
+fi
 if [ -n "$MYSQL_PORT_3306_TCP" ]; then
 	if [ -z "$WORDPRESS_DB_HOST" ]; then
 		WORDPRESS_DB_HOST='mysql'
