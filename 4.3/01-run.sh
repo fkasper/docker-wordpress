@@ -2,6 +2,7 @@
 set -e
 
 if [ -d /app ]; then
+  rm -rf /system/wordpress/wp-content
   ln -sfn /app /system/wordpress/wp-content
 fi
 
@@ -60,7 +61,6 @@ if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROT
 	$_SERVER['HTTPS'] = 'on';
 }
 EOPHP
-		chown www-data:www-data wp-config.php
 	fi
 
 	# see http://stackoverflow.com/a/2705678/433558
@@ -143,4 +143,5 @@ $mysql->close();
 EOPHP
 
 
+chown www-data:www-data .
 /usr/bin/supervisord
